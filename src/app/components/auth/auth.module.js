@@ -3,18 +3,40 @@ angular
     'ui.router',
     'firebase'
   ])
-  .config( function($firebaseRefProvider) {
+  .config(function ($firebaseRefProvider) {
+
     var config = {
-      apiKey: "AIzaSyBvpsRP2GIM6dMGNxImoDz95z0qTPJ9cRI",
-      authDomain: "contacts-manager-fdf21.firebaseapp.com",
-      databaseURL: "https://contacts-manager-fdf21.firebaseio.com",
-      projectId: "contacts-manager-fdf21",
-      storageBucket: "contacts-manager-fdf21.appspot.com",
-      messagingSenderId: "463993708607"
+      apiKey: "AIzaSyCsNISt3dFx7dy5AImIIk62jDDd0OLvZK0",
+      authDomain: "contacts-manager-e486f.firebaseapp.com",
+      databaseURL: "https://contacts-manager-e486f.firebaseio.com",
+      storageBucket: "contacts-manager-e486f.appspot.com",
     };
-    $firebaseRefProvider.registerUrl({
-      default: config.databaseURL,
-      contacts: config.databaseURL + '/contacts'
-    })
+
+    $firebaseRefProvider
+      .registerUrl({
+        default: config.databaseURL,
+        contacts: config.databaseURL + '/contacts'
+      });
+
     firebase.initializeApp(config);
+  })
+  .run(function ($transitions, $state, AuthService) {
+    $transitions.onStart({
+      to: function (state) {
+        return !!(state.data && state.data.requiredAuth);
+      }
+    }, function() {
+      return AuthService
+        .requireAuthentication()
+        .catch(function () {
+          return $state.target('auth.login');
+        });
+    });
+    $transitions.onStart({
+      to: 'auth.*'
+    }, function () {
+      if (AuthService.isAuthenticated()) {
+        return $state.target('app');
+      }
+    });
   });
